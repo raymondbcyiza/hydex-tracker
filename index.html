@@ -6,10 +6,10 @@
     <title>HYDEX.LOG - Engineering Development Tracker</title>
     
     <!-- React from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18/umd/react.production.min.js';"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';"></script>
     <script>
-      
+      // Sanity check: if these are missing, later libraries (like lucide-react) will crash.
       if (!window.React || !window.ReactDOM) {
         console.error("React or ReactDOM failed to load. Check the Network tab for blocked CDN requests.");
       }
@@ -17,12 +17,14 @@
 
     
     <!-- Babel for JSX transformation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.0/babel.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@babel/standalone@7.26.0/babel.min.js';"></script>
     
     
     <script>
-      // Force "classic" JSX runtime so Babel doesn't generate require("react/jsx-runtime") in the browser.
-      // Also disable module-to-CommonJS transforms.
+      if (!window.Babel) {
+        console.error('Babel failed to load. Check Network tab for blocked CDN requests.');
+      }
+      
       Babel.registerPreset("react-classic", {
         presets: [
           [Babel.availablePresets["env"], { modules: false }],
@@ -31,7 +33,7 @@
       });
     </script>
     <!-- Lucide (vanilla JS icons, UMD) -->
-    <script src="https://unpkg.com/lucide@0.552.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.552.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/lucide@0.552.0/dist/umd/lucide.min.js';"></script>
 
 <style>
         * {
@@ -189,7 +191,7 @@ const User = (props) => React.createElement(LucideIcon, { name: 'user', ...props
 // =============================================================================
 // SUPABASE CONFIGURATION
 // =============================================================================
-// Replace these with your actual Supabase credentials after setup
+
 const SUPABASE_URL = 'https://wkosnduawdjkaxcnozsn.supabase.co'; // e.g., 'https://xxxxx.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indrb3NuZHVhd2Rqa2F4Y25venNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MTkwODksImV4cCI6MjA4NTE5NTA4OX0.L8NMBY-i_WkwhJaXqhPqlKQP4_UlahEZO1exjdG1V8s';
 
