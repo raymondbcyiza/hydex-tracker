@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Target, TrendingUp, Book, Plus, Award, Clock, Zap, LogOut, User } from 'lucide-react';
+const { useState, useEffect } = React;
 
+const lucide = window.lucideReact || window.LucideReact;
+const { Calendar, Target, TrendingUp, Book, Plus, Award, Clock, Zap, LogOut, User } = lucide;
 // =============================================================================
 // SUPABASE CONFIGURATION
 // =============================================================================
