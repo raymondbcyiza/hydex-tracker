@@ -99,24 +99,26 @@ class SupabaseClient {
   }
 
   async fetch(endpoint, options = {}) {
-    const headers = {
-      'apikey': this.key,
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
+  const headers = {
+    // IMPORTANT: always include both
+    apikey: this.key,
+    Authorization: `Bearer ${this.token || this.key}`,
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
+  const response = await fetch(`${this.url}${endpoint}`, {
+    ...options,
+    headers,
+  });
 
-    const response = await fetch(`${this.url}${endpoint}`, {
-      ...options,
-      headers
-    });
+  // Handle empty responses (DELETE can return no JSON)
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
 
-    const data = await response.json();
-    return { data, error: !response.ok ? data : null };
-  }
+  return { data, error: !response.ok ? data : null };
+}
+
 
   // Auth methods
   async signUp(email, password) {
