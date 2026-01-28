@@ -1,22 +1,87 @@
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useMemo, useRef } = React;
 
-// Lucide React UMD attaches to a global. The most common names are lucideReact / LucideReact.
-const __lucide = window.lucideReact || window.LucideReact || {};
-const __fallbackIcon = (name) => (props) =>
-  React.createElement('span', { ...props, title: name, style: { display: 'inline-block', width: props?.size || 16, height: props?.size || 16 } });
+const __toPascalCase = (kebab) =>
+  kebab
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
 
-const Calendar = __lucide.Calendar || __fallbackIcon('Calendar');
-const Target = __lucide.Target || __fallbackIcon('Target');
-const TrendingUp = __lucide.TrendingUp || __fallbackIcon('TrendingUp');
-const Book = __lucide.Book || __fallbackIcon('Book');
-const Plus = __lucide.Plus || __fallbackIcon('Plus');
-const Award = __lucide.Award || __fallbackIcon('Award');
-const Clock = __lucide.Clock || __fallbackIcon('Clock');
-const Zap = __lucide.Zap || __fallbackIcon('Zap');
-const LogOut = __lucide.LogOut || __fallbackIcon('LogOut');
-const User = __lucide.User || __fallbackIcon('User');
+function LucideIcon({
+  name,
+  size = 20,
+  color = 'currentColor',
+  strokeWidth = 2,
+  className = '',
+  'aria-label': ariaLabel,
+  ...rest
+}) {
+  const ref = useRef(null);
 
+  const iconDef = useMemo(() => {
+    const lib = window.lucide;
+    const icons = lib && lib.icons;
+    if (!icons || !name) return null;
+    return icons[name] || icons[__toPascalCase(name)] || null;
+  }, [name]);
+
+  useEffect(() => {
+    const lib = window.lucide;
+    if (!ref.current) return;
+    // Clear anything previously rendered
+    ref.current.innerHTML = '';
+
+    if (!lib || typeof lib.createElement !== 'function' || !iconDef) {
+      // Fallback: small placeholder so layout doesn't jump
+      const span = document.createElement('span');
+      span.style.display = 'inline-block';
+      span.style.width = `${size}px`;
+      span.style.height = `${size}px`;
+      span.title = name || '';
+      ref.current.appendChild(span);
+      return;
+    }
+
+    const attrs = {
+      width: size,
+      height: size,
+      stroke: color,
+      'stroke-width': strokeWidth,
+      // lucide supports class as string or array; array is safest.
+      class: className ? className.split(/\s+/).filter(Boolean) : undefined,
+      ...rest
+    };
+
+    try {
+      const svg = lib.createElement(iconDef, attrs);
+      // Ensure a11y defaults match lucide docs: aria-hidden unless label is provided.
+      if (ariaLabel) {
+        svg.setAttribute('aria-label', ariaLabel);
+      } else {
+        svg.setAttribute('aria-hidden', 'true');
+      }
+      ref.current.appendChild(svg);
+    } catch (e) {
+      console.error('Failed to render lucide icon:', name, e);
+    }
+  }, [iconDef, size, color, strokeWidth, className, ariaLabel, JSON.stringify(rest)]);
+
+  // Wrap the SVG in a span so React owns the container and Lucide owns the SVG.
+  return React.createElement('span', { ref });
+}
+
+// Aliases matching your existing JSX usage (previously from lucide-react)
+const Calendar = (props) => React.createElement(LucideIcon, { name: 'calendar', ...props });
+const Target = (props) => React.createElement(LucideIcon, { name: 'target', ...props });
+const TrendingUp = (props) => React.createElement(LucideIcon, { name: 'trending-up', ...props });
+const Book = (props) => React.createElement(LucideIcon, { name: 'book', ...props });
+const Plus = (props) => React.createElement(LucideIcon, { name: 'plus', ...props });
+const Award = (props) => React.createElement(LucideIcon, { name: 'award', ...props });
+const Clock = (props) => React.createElement(LucideIcon, { name: 'clock', ...props });
+const Zap = (props) => React.createElement(LucideIcon, { name: 'zap', ...props });
+const LogOut = (props) => React.createElement(LucideIcon, { name: 'log-out', ...props });
+const User = (props) => React.createElement(LucideIcon, { name: 'user', ...props });
 
 // =============================================================================
 // SUPABASE CONFIGURATION
