@@ -1,108 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYDEX.LOG - Engineering Development Tracker</title>
-    
-    <!-- React from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18/umd/react.production.min.js';"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';"></script>
-    <script>
-      // Sanity check: if these are missing, later libraries (like lucide-react) will crash.
-      if (!window.React || !window.ReactDOM) {
-        console.error("React or ReactDOM failed to load. Check the Network tab for blocked CDN requests.");
-      }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HYDEX.LOG - Engineering Development Tracker</title>
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#0f0f10; color:#eaeaea; }
+    #loading {
+      position: fixed; inset: 0; display:flex; align-items:center; justify-content:center;
+      background:#0f0f10; z-index: 9999;
+    }
+    #loading.hidden { display:none; }
+    .spinner {
+      width: 46px; height: 46px; border: 4px solid rgba(255,107,0,0.2);
+      border-top-color:#ff6b00; border-radius:50%; animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 
-    
-    <!-- Babel for JSX transformation -->
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.0/babel.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@babel/standalone@7.26.0/babel.min.js';"></script>
-    
-    
-    <script>
-      if (!window.Babel) {
-        console.error('Babel failed to load. Check Network tab for blocked CDN requests.');
-      }
-      
-      Babel.registerPreset("react-classic", {
-        presets: [
-          [Babel.availablePresets["env"], { modules: false }],
-          [Babel.availablePresets["react"], { runtime: "classic" }]
-        ]
-      });
-    </script>
-    <!-- Lucide (vanilla JS icons, UMD) -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.552.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/lucide@0.552.0/dist/umd/lucide.min.js';"></script>
-
-<style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-        
-        #root {
-            width: 100%;
-            min-height: 100vh;
-        }
-        
-        /* Loading screen */
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2a1f3a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            color: #ff6b00;
-        }
-        
-        #loading.hidden {
-            display: none;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,107,0,0.2);
-            border-top-color: #ff6b00;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <!-- Libraries (UMD globals) -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"
+          onerror="this.onerror=null;this.src='https://unpkg.com/react@18/umd/react.production.min.js'"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"
+          onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.552.0/dist/umd/lucide.min.js"
+          onerror="this.onerror=null;this.src='https://unpkg.com/lucide@0.552.0/dist/umd/lucide.min.js'"></script>
 </head>
 <body>
-    <!-- Loading indicator -->
-    <div id="loading">
-        <div>
-            <div class="spinner" style="margin: 0 auto 1rem;"></div>
-            <div style="text-align: center; font-weight: 700; letter-spacing: 0.1em;">
-                LOADING HYDEX.LOG...
-            </div>
-        </div>
+  <div id="loading">
+    <div>
+      <div class="spinner"></div>
+      <div style="text-align:center; font-weight:700; letter-spacing:0.08em;">LOADING HYDEX.LOG…</div>
+      <div id="boot-status" style="text-align:center; opacity:0.75; margin-top:0.75rem; font-size:0.9rem;"></div>
     </div>
-    
-    <!-- React root -->
-    <div id="root"></div>
-    
-    <!-- Your app component -->
-    <script type="text/babel" data-presets="react-classic">
+  </div>
+
+  <div id="root"></div>
+
+  <!-- App source (JSX). Babel will compile this *after* it loads. -->
+  <script id="app" type="text/babel" data-presets="react-classic">
 
 const { useState, useEffect, useMemo, useRef } = React;
 
@@ -1624,59 +1561,73 @@ const Select = ({ label, children, ...props }) => (
   </div>
 );
 
-</script>
-    
-    <!-- Initialize app -->
-    <script type="text/babel" data-presets="react-classic">
-        // Wait for DOM to be ready
-        window.addEventListener('DOMContentLoaded', () => {
-            try {
-                // Get the root element
-                const rootElement = document.getElementById('root');
-                
-                // Create React root and render
-                const root = ReactDOM.createRoot(rootElement);
-                root.render(<HydexTracker />);
-                
-                // Hide loading screen
-                setTimeout(() => {
-                    document.getElementById('loading').classList.add('hidden');
-                }, 500);
-                
-            } catch (error) {
-                console.error('Error initializing app:', error);
-                document.getElementById('loading').innerHTML = `
-                    <div style="text-align: center; color: #ff6b6b;">
-                        <h2 style="margin-bottom: 1rem;">Initialization Error</h2>
-                        <p>Check console for details (F12)</p>
-                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #888;">
-                            Make sure app.jsx is in the same folder as index.html
-                        </p>
-                    </div>
-                `;
-            }
+  </script>
+
+  <!-- Babel loaded AFTER the app tag, then we compile explicitly -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.0/babel.min.js"
+          onerror="this.onerror=null;this.src='https://unpkg.com/@babel/standalone@7.26.0/babel.min.js'"></script>
+
+  <script>
+    (function() {
+      const statusEl = document.getElementById('boot-status');
+      function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+      setStatus('Checking libraries…');
+
+      // Basic sanity checks so you get a real reason instead of "infinite loading"
+      if (!window.React) {
+        console.error('React failed to load.');
+        setStatus('React failed to load (blocked CDN?). Check Network tab.');
+        return;
+      }
+      if (!window.ReactDOM) {
+        console.error('ReactDOM failed to load.');
+        setStatus('ReactDOM failed to load (blocked CDN?). Check Network tab.');
+        return;
+      }
+      if (!window.lucide) {
+        console.error('Lucide failed to load.');
+        setStatus('Lucide failed to load (blocked CDN?). Check Network tab.');
+        return;
+      }
+      if (!window.Babel) {
+        console.error('Babel failed to load.');
+        setStatus('Babel failed to load (blocked CDN?). Check Network tab.');
+        return;
+      }
+
+      setStatus('Compiling JSX…');
+
+      // Register preset BEFORE transforming
+      Babel.registerPreset("react-classic", {
+        presets: [
+          [Babel.availablePresets["env"], { modules: false }],
+          [Babel.availablePresets["react"], { runtime: "classic" }]
+        ]
+      });
+
+      try {
+        // Only transform the app tag to avoid surprises
+        Babel.transformScriptTags(function(script) {
+          return script.id === 'app';
         });
-    </script>
+        setStatus('Starting app…');
+      } catch (e) {
+        console.error('Babel transform failed:', e);
+        setStatus('JSX compile failed. See Console for details.');
+        return;
+      }
 
-<script>
-  // If Babel transform hangs (usually a blocked/404 resource), show a helpful message.
-  setTimeout(() => {
-    const loading = document.getElementById('loading');
-    if (loading && !loading.classList.contains('hidden')) {
-      loading.innerHTML = `
-        <div style="text-align:center; max-width: 680px; padding: 24px; color:#ffb3b3;">
-          <h2 style="margin:0 0 12px 0; color:#ff6b6b;">Still loading…</h2>
-          <p style="margin:0 0 10px 0; color:#ddd;">
-            This usually means one of the CDN scripts failed to load, or the in-browser Babel transform got stuck.
-          </p>
-          <p style="margin:0; color:#bbb; font-size: 0.95rem;">
-            Open DevTools → Network and check that <b>react</b>, <b>react-dom</b>, <b>babel.min.js</b>, and <b>lucide.min.js</b> all return <b>200</b>.
-          </p>
-        </div>
-      `;
-    }
-  }, 12000);
-</script>
-
+      // If the app doesn't hide the loader, do it after a moment so you can at least see errors
+      setTimeout(() => {
+        const loading = document.getElementById('loading');
+        if (loading && !loading.classList.contains('hidden')) {
+          // Don't hide if an error message replaced content
+          // but do hide spinner overlay so you can interact with page
+          loading.classList.add('hidden');
+        }
+      }, 4000);
+    })();
+  </script>
 </body>
 </html>
