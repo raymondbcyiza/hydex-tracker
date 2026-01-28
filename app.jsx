@@ -1,11 +1,27 @@
+
 const { useState, useEffect } = React;
 
-const lucide = window.lucideReact || window.LucideReact;
-const { Calendar, Target, TrendingUp, Book, Plus, Award, Clock, Zap, LogOut, User } = lucide;
+// Lucide React UMD attaches to a global. The most common names are lucideReact / LucideReact.
+const __lucide = window.lucideReact || window.LucideReact || {};
+const __fallbackIcon = (name) => (props) =>
+  React.createElement('span', { ...props, title: name, style: { display: 'inline-block', width: props?.size || 16, height: props?.size || 16 } });
+
+const Calendar = __lucide.Calendar || __fallbackIcon('Calendar');
+const Target = __lucide.Target || __fallbackIcon('Target');
+const TrendingUp = __lucide.TrendingUp || __fallbackIcon('TrendingUp');
+const Book = __lucide.Book || __fallbackIcon('Book');
+const Plus = __lucide.Plus || __fallbackIcon('Plus');
+const Award = __lucide.Award || __fallbackIcon('Award');
+const Clock = __lucide.Clock || __fallbackIcon('Clock');
+const Zap = __lucide.Zap || __fallbackIcon('Zap');
+const LogOut = __lucide.LogOut || __fallbackIcon('LogOut');
+const User = __lucide.User || __fallbackIcon('User');
+
+
 // =============================================================================
 // SUPABASE CONFIGURATION
 // =============================================================================
-// Replace these with your actual Supabase credentials after setup
+
 const SUPABASE_URL = 'https://wkosnduawdjkaxcnozsn.supabase.co'; // e.g., 'https://xxxxx.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indrb3NuZHVhd2Rqa2F4Y25venNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MTkwODksImV4cCI6MjA4NTE5NTA4OX0.L8NMBY-i_WkwhJaXqhPqlKQP4_UlahEZO1exjdG1V8s';
 
