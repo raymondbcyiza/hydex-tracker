@@ -1436,5 +1436,3 @@ const Select = ({ label, children, ...props }) => (
     </select>
   </div>
 );
-
-export default HydexTracker;
