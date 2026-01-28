@@ -3,21 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYDEX.LOG - Engineering Tracker</title>
+    <title>HYDEX.LOG - Engineering Development Tracker</title>
+    
+    <!-- React from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        body { margin: 0; padding: 0; }
-        #root { width: 100%; height: 100vh; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        #root {
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* Loading screen */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2a1f3a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            color: #ff6b00;
+        }
+        
+        #loading.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,107,0,0.2);
+            border-top-color: #ff6b00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <!-- Loading indicator -->
+    <div id="loading">
+        <div>
+            <div class="spinner" style="margin: 0 auto 1rem;"></div>
+            <div style="text-align: center; font-weight: 700; letter-spacing: 0.1em;">
+                LOADING HYDEX.LOG...
+            </div>
+        </div>
+    </div>
+    
+    <!-- React root -->
     <div id="root"></div>
+    
+    <!-- Your app component -->
     <script type="text/babel" src="app.jsx"></script>
+    
+    <!-- Initialize app -->
     <script type="text/babel">
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<HydexTracker />);
+        // Wait for DOM to be ready
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Get the root element
+                const rootElement = document.getElementById('root');
+                
+                // Create React root and render
+                const root = ReactDOM.createRoot(rootElement);
+                root.render(<HydexTracker />);
+                
+                // Hide loading screen
+                setTimeout(() => {
+                    document.getElementById('loading').classList.add('hidden');
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div style="text-align: center; color: #ff6b6b;">
+                        <h2 style="margin-bottom: 1rem;">Initialization Error</h2>
+                        <p>Check console for details (F12)</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #888;">
+                            Make sure app.jsx is in the same folder as index.html
+                        </p>
+                    </div>
+                `;
+            }
+        });
     </script>
 </body>
 </html>
