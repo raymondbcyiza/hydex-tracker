@@ -12,10 +12,19 @@
     <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     
-    <style>
+    <script>
+      Babel.registerPreset("react-classic", {
+        presets: [
+          [Babel.availablePresets["env"], { modules: false }],
+          [Babel.availablePresets["react"], { runtime: "classic" }]
+        ]
+      });
+    </script>
+<!-- Lucide React Icons (UMD build) -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide-react@0.484.0/dist/umd/lucide-react.min.js"></script>
+
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -82,11 +91,10 @@
     <div id="root"></div>
     
     <!-- Your app component -->
-    <script src="https://unpkg.com/lucide-react@latest"></script>
-    <script type="text/babel" src="app.jsx"></script>
+    <script type="text/babel" data-presets="react-classic" src="app.jsx"></script>
     
     <!-- Initialize app -->
-    <script type="text/babel">
+    <script type="text/babel" data-presets="react-classic">
         // Wait for DOM to be ready
         window.addEventListener('DOMContentLoaded', () => {
             try {
