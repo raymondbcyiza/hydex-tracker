@@ -82,6 +82,11 @@ const Clock = (props) => React.createElement(LucideIcon, { name: 'clock', ...pro
 const Zap = (props) => React.createElement(LucideIcon, { name: 'zap', ...props });
 const LogOut = (props) => React.createElement(LucideIcon, { name: 'log-out', ...props });
 const User = (props) => React.createElement(LucideIcon, { name: 'user', ...props });
+const Edit = (props) => React.createElement(LucideIcon, { name: 'edit', ...props });
+const Trash2 = (props) => React.createElement(LucideIcon, { name: 'trash-2', ...props });
+const Save = (props) => React.createElement(LucideIcon, { name: 'save', ...props });
+const X = (props) => React.createElement(LucideIcon, { name: 'x', ...props });
+const Filter = (props) => React.createElement(LucideIcon, { name: 'filter', ...props });
 
 // =============================================================================
 // SUPABASE CONFIGURATION
@@ -214,7 +219,62 @@ const HydexTracker = () => {
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
-  
+  const DeleteConfirmModal = ({ type, onConfirm, onCancel }) => {
+  return React.createElement(
+    Modal,
+    { onClose: onCancel, title: 'CONFIRM DELETE' },
+    React.createElement(
+      'div',
+      { style: { textAlign: 'center' } },
+      React.createElement('p', {
+        style: { fontSize: '1.1rem', color: '#ccc', marginBottom: '1.5rem' }
+      }, `Are you sure you want to delete this ${type}?`),
+      React.createElement('p', {
+        style: { fontSize: '0.9rem', color: '#888', marginBottom: '2rem' }
+      }, 'This action cannot be undone.'),
+      React.createElement(
+        'div',
+        { style: { display: 'flex', gap: '1rem', justifyContent: 'center' } },
+        React.createElement(
+          'button',
+          {
+            onClick: onCancel,
+            style: {
+              padding: '0.75rem 2rem',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              color: '#e8e8e8',
+              fontFamily: 'inherit',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }
+          },
+          'CANCEL'
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: onConfirm,
+            style: {
+              padding: '0.75rem 2rem',
+              background: 'linear-gradient(135deg, #ff0000, #ff4444)',
+              border: 'none',
+              borderRadius: '6px',
+              color: '#fff',
+              fontFamily: 'inherit',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }
+          },
+          'DELETE'
+        )
+      )
+    )
+  );
+};
   // Form states
   const [entryForm, setEntryForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -246,7 +306,17 @@ const HydexTracker = () => {
     outcome: '',
     learned: ''
   });
+  // Edit states - tracks which item is being edited
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
 
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+
+  // Filter states for log view
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   // Check if user is logged in and load data
   useEffect(() => {
     const currentUser = supabase.getUser();
@@ -348,6 +418,99 @@ const HydexTracker = () => {
       setShowEntryModal(false);
     }
   };
+  // UPDATE ENTRY
+const updateEntry = async () => {
+  const updatedEntry = {
+    date: entryForm.date,
+    title: entryForm.title,
+    description: entryForm.description,
+    category: entryForm.category,
+    time_spent: parseFloat(entryForm.timeSpent),
+    confidence: entryForm.confidence,
+    tags: entryForm.tags.split(',').map(t => t.trim()).filter(Boolean),
+    standard: entryForm.standard,
+    measurement: entryForm.measurement,
+    tolerance: entryForm.tolerance,
+    what_failed: entryForm.whatFailed,
+    safety_notes: entryForm.safetyNotes
+  };
+
+  const { data, error } = await supabase.update('entries', editingEntry.id, updatedEntry);
+  
+  if (!error && data) {
+    setEntries(entries.map(e => e.id === editingEntry.id ? data[0] : e));
+    resetEntryForm();
+    setShowEntryModal(false);
+    setEditingEntry(null);
+  }
+};
+
+// START EDITING ENTRY
+const startEditEntry = (entry) => {
+  setEditingEntry(entry);
+  setEntryForm({
+    date: entry.date,
+    title: entry.title,
+    description: entry.description,
+    category: entry.category,
+    timeSpent: entry.time_spent,
+    confidence: entry.confidence,
+    tags: (entry.tags || []).join(', '),
+    standard: entry.standard || '',
+    measurement: entry.measurement || '',
+    tolerance: entry.tolerance || '',
+    whatFailed: entry.what_failed || '',
+    safetyNotes: entry.safety_notes || ''
+  });
+  setShowEntryModal(true);
+};
+
+// RESET ENTRY FORM
+const resetEntryForm = () => {
+  setEntryForm({
+    date: new Date().toISOString().split('T')[0],
+    title: '',
+    description: '',
+    category: 'CAD',
+    timeSpent: 0,
+    confidence: 3,
+    tags: '',
+    standard: '',
+    measurement: '',
+    tolerance: '',
+    whatFailed: '',
+    safetyNotes: ''
+  });
+};
+  // DELETE ENTRY
+const deleteEntry = async (id) => {
+  const { error } = await supabase.delete('entries', id);
+  
+  if (!error) {
+    setEntries(entries.filter(e => e.id !== id));
+    setShowDeleteConfirm(null);
+  }
+};
+
+// DELETE GOAL
+const deleteGoal = async (id) => {
+  const { error } = await supabase.delete('goals', id);
+  
+  if (!error) {
+    setGoals(goals.filter(g => g.id !== id));
+    setShowDeleteConfirm(null);
+  }
+};
+
+// DELETE PROJECT
+const deleteProject = async (id) => {
+  const { error } = await supabase.delete('projects', id);
+  
+  if (!error) {
+    setProjects(projects.filter(p => p.id !== id));
+    setShowDeleteConfirm(null);
+  }
+};
 
   // Add goal
   const addGoal = async () => {
@@ -368,7 +531,41 @@ const HydexTracker = () => {
       setShowGoalModal(false);
     }
   };
+// UPDATE GOAL
+const updateGoal = async () => {
+  const updatedGoal = {
+    title: goalForm.title,
+    type: goalForm.type,
+    target_date: goalForm.targetDate || null,
+    description: goalForm.description
+  };
 
+  const { data, error } = await supabase.update('goals', editingGoal.id, updatedGoal);
+  
+  if (!error && data) {
+    setGoals(goals.map(g => g.id === editingGoal.id ? data[0] : g));
+    resetGoalForm();
+    setShowGoalModal(false);
+    setEditingGoal(null);
+  }
+};
+
+// START EDITING GOAL
+const startEditGoal = (goal) => {
+  setEditingGoal(goal);
+  setGoalForm({
+    title: goal.title,
+    type: goal.type,
+    targetDate: goal.target_date || '',
+    description: goal.description
+  });
+  setShowGoalModal(true);
+};
+
+// RESET GOAL FORM
+const resetGoalForm = () => {
+  setGoalForm({ title: '', type: 'monthly', targetDate: '', description: '' });
+};
   // Add project
   const addProject = async () => {
     const newProject = {
@@ -389,6 +586,45 @@ const HydexTracker = () => {
       setShowProjectModal(false);
     }
   };
+  // UPDATE PROJECT
+const updateProject = async () => {
+  const updatedProject = {
+    title: projectForm.title,
+    problem: projectForm.problem,
+    role: projectForm.role,
+    tools: projectForm.tools,
+    outcome: projectForm.outcome,
+    learned: projectForm.learned
+  };
+
+  const { data, error } = await supabase.update('projects', editingProject.id, updatedProject);
+  
+  if (!error && data) {
+    setProjects(projects.map(p => p.id === editingProject.id ? data[0] : p));
+    resetProjectForm();
+    setShowProjectModal(false);
+    setEditingProject(null);
+  }
+};
+
+// START EDITING PROJECT
+const startEditProject = (project) => {
+  setEditingProject(project);
+  setProjectForm({
+    title: project.title,
+    problem: project.problem,
+    role: project.role,
+    tools: project.tools,
+    outcome: project.outcome,
+    learned: project.learned
+  });
+  setShowProjectModal(true);
+};
+
+// RESET PROJECT FORM
+const resetProjectForm = () => {
+  setProjectForm({ title: '', problem: '', role: '', tools: '', outcome: '', learned: '' });
+};
 
   // Update skill level
   const updateSkillLevel = async (skillId, newLevel) => {
@@ -454,6 +690,17 @@ const HydexTracker = () => {
       loadAllData(user.id);
     }} />;
   }
+  // Filter entries
+const filteredEntries = entries.filter(entry => {
+  const matchesCategory = categoryFilter === 'all' || entry.category === categoryFilter;
+  const matchesSearch = searchQuery === '' || 
+    entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    entry.description.toLowerCase().includes(searchQuery.toLowerCase());
+  return matchesCategory && matchesSearch;
+});
+
+// Get unique categories
+const categories = ['all', ...new Set(entries.map(e => e.category))];
 
   return (
     <div style={{
@@ -1007,92 +1254,179 @@ const DashboardView = ({ entries, skills, goals, projects, categoryHours, totalH
   );
 };
 
-const LogView = ({ entries, onAddEntry }) => (
-  <div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-      <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#ff6b00' }}>LOG ENTRIES</h2>
-      <button onClick={onAddEntry} style={{
-        padding: '0.75rem 1.5rem',
-        background: 'linear-gradient(135deg, #ff6b00, #ff8c00)',
-        border: 'none',
-        borderRadius: '6px',
-        color: '#0a0e27',
-        fontFamily: 'inherit',
-        fontSize: '0.9rem',
-        fontWeight: 700,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem'
-      }}>
-        <Plus size={18} />
-        NEW ENTRY
-      </button>
-    </div>
-    
-    {entries.length === 0 ? (
-      <Card title="NO ENTRIES YET">
-        <p style={{ color: '#888', marginTop: '1rem' }}>Click "NEW ENTRY" to start tracking your learning journey.</p>
-      </Card>
-    ) : (
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {entries.map(entry => (
-          <Card key={entry.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#ff6b00' }}>{entry.title}</h3>
-                  <span style={{
-                    padding: '0.25rem 0.75rem',
-                    background: 'rgba(255,107,0,0.2)',
-                    border: '1px solid rgba(255,107,0,0.4)',
-                    borderRadius: '4px',
-                    fontSize: '0.7rem',
-                    fontWeight: 700
-                  }}>
-                    {entry.category}
-                  </span>
-                </div>
-                <p style={{ margin: '0.5rem 0', color: '#ccc', lineHeight: 1.6 }}>{entry.description}</p>
-                
-                {entry.standard && (
-                  <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', borderLeft: '2px solid #ff6b00' }}>
-                    <strong style={{ color: '#ff6b00', fontSize: '0.85rem' }}>Standard/Spec:</strong>
-                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', color: '#ccc' }}>{entry.standard}</p>
-                  </div>
-                )}
-                
-                {entry.tags && entry.tags.length > 0 && (
-                  <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {entry.tags.map((tag, i) => (
-                      <span key={i} style={{
-                        padding: '0.25rem 0.75rem',
-                        background: 'rgba(255,255,255,0.1)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '12px',
-                        fontSize: '0.75rem'
-                      }}>
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <div style={{ marginLeft: '2rem', textAlign: 'right' }}>
-                <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.5rem' }}>{entry.date}</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ff6b00' }}>{entry.time_spent}h</div>
-                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.5rem' }}>
-                  Confidence: {entry.confidence}/5
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    )}
-  </div>
-);
+const LogView = ({ entries, onAddEntry, onEditEntry, onDeleteEntry, categories, categoryFilter, setCategoryFilter, searchQuery, setSearchQuery }) => {
+  return React.createElement(
+    'div',
+    null,
+    // Header with filters
+    React.createElement(
+      'div',
+      { style: { marginBottom: '2rem' } },
+      React.createElement(
+        'div',
+        { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' } },
+        React.createElement('h2', {
+          style: { margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#ff6b00' }
+        }, 'LOG ENTRIES'),
+        React.createElement(
+          'button',
+          {
+            onClick: onAddEntry,
+            style: {
+              padding: '0.75rem 1.5rem',
+              background: 'linear-gradient(135deg, #ff6b00, #ff8c00)',
+              border: 'none',
+              borderRadius: '6px',
+              color: '#0a0e27',
+              fontFamily: 'inherit',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }
+          },
+          
+          React.createElement(Plus, { size: 18 }),
+          'NEW ENTRY'
+        )
+      ),
+      // Filter bar
+      React.createElement(
+        'div',
+        { style: { display: 'flex', gap: '1rem', marginBottom: '1rem' } },
+        // Category filter
+        React.createElement(
+          'div',
+          { style: { flex: 1 } },
+          React.createElement('select', {
+            value: categoryFilter,
+            onChange: (e) => setCategoryFilter(e.target.value),
+            style: {
+              width: '100%',
+              padding: '0.75rem',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              color: '#e8e8e8',
+              fontFamily: 'inherit',
+              fontSize: '0.9rem'
+            }
+          }, categories.map(cat =>
+            React.createElement('option', { key: cat, value: cat }, 
+              cat === 'all' ? 'All Categories' : cat
+            )
+          ))
+        ),
+        // Search bar
+        React.createElement(
+          'div',
+          { style: { flex: 2 } },
+          React.createElement('input', {
+            type: 'text',
+            placeholder: 'Search entries...',
+            value: searchQuery,
+            onChange: (e) => setSearchQuery(e.target.value),
+            style: {
+              width: '100%',
+              padding: '0.75rem',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              color: '#e8e8e8',
+              fontFamily: 'inherit',
+              fontSize: '0.9rem'
+            }
+          })
+        )
+      )
+    ),
+    // Entries list
+    entries.length === 0 ?
+      React.createElement(Card, { title: 'NO ENTRIES YET' },
+        React.createElement('p', { style: { color: '#888', marginTop: '1rem' } },
+          'Click "NEW ENTRY" to start tracking your learning journey.'
+        )
+      ) :
+      React.createElement(
+        'div',
+        { style: { display: 'grid', gap: '1rem' } },
+        entries.map(entry =>
+          React.createElement(Card, { key: entry.id },
+            React.createElement(
+              'div',
+              { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'start' } },
+              // Entry content
+              React.createElement(
+                'div',
+                { style: { flex: 1 } },
+                React.createElement(
+                  'div',
+                  { style: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' } },
+                  React.createElement('h3', {
+                    style: { margin: 0, fontSize: '1.25rem', color: '#ff6b00' }
+                  }, entry.title),
+                  React.createElement('span', {
+                    style: {
+                      padding: '0.25rem 0.75rem',
+                      background: 'rgba(255,107,0,0.2)',
+                      border: '1px solid rgba(255,107,0,0.4)',
+                      borderRadius: '4px',
+                      fontSize: '0.7rem',
+                      fontWeight: 700
+                    }
+                  }, entry.category)
+                ),
+                React.createElement('p', {
+                  style: { margin: '0.5rem 0', color: '#ccc', lineHeight: 1.6 }
+                }, entry.description)
+              ),
+              // Action buttons
+              React.createElement(
+                'div',
+                { style: { display: 'flex', gap: '0.5rem', marginLeft: '1rem' } },
+                React.createElement(
+                  'button',
+                  {
+                    onClick: () => onEditEntry(entry),
+                    style: {
+                      padding: '0.5rem',
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '4px',
+                      color: '#ff6b00',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }
+                  },
+                  React.createElement(Edit, { size: 16 })
+                ),
+                React.createElement(
+                  'button',
+                  {
+                    onClick: () => onDeleteEntry(entry.id),
+                    style: {
+                      padding: '0.5rem',
+                      background: 'rgba(255,0,0,0.1)',
+                      border: '1px solid rgba(255,0,0,0.3)',
+                      borderRadius: '4px',
+                      color: '#ff6b6b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }
+                  },
+                  React.createElement(Trash2, { size: 16 })
+                )
+              )
+            )
+          )
+        )
+      )
+  );
+};
 
 const SkillsView = ({ skills, onUpdateSkill }) => (
   <div>
@@ -1408,7 +1742,7 @@ const EntryForm = ({ form, setForm, onSubmit }) => (
       cursor: 'pointer',
       marginTop: '1rem'
     }}>
-      ADD ENTRY
+      {isEditing ? 'UPDATE ENTRY' : 'ADD ENTRY'}
     </button>
   </form>
 );
@@ -1438,7 +1772,7 @@ const GoalForm = ({ form, setForm, onSubmit }) => (
       cursor: 'pointer',
       marginTop: '1rem'
     }}>
-      ADD GOAL
+      {isEditing ? 'UPDATE ENTRY' : 'ADD GOAL'}
     </button>
   </form>
 );
@@ -1464,7 +1798,7 @@ const ProjectForm = ({ form, setForm, onSubmit }) => (
       cursor: 'pointer',
       marginTop: '1rem'
     }}>
-      ADD PROJECT
+      {isEditing ? 'UPDATE ENTRY' : 'ADD PROJECT'}
     </button>
   </form>
 );
