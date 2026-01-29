@@ -861,20 +861,9 @@ const categories = ['all', ...new Set(entries.map(e => e.category))];
         )}
         
         {activeView === 'log' && (
-          <LogView
-            entries={filteredEntries}
-            categories={categories}
-            categoryFilter={categoryFilter}
-            setCategoryFilter={setCategoryFilter}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            onAddEntry={() => {
-              setEditingEntry(null);
-              resetEntryForm();
-              setShowEntryModal(true);
-            }}
-            onEditEntry={startEditEntry}
-            onDeleteEntry={(id) => setShowDeleteConfirm({ type: 'entry', id })}
+          <LogView 
+            entries={entries}
+            onAddEntry={() => setShowEntryModal(true)}
           />
         )}
         
@@ -886,100 +875,38 @@ const categories = ['all', ...new Set(entries.map(e => e.category))];
         )}
         
         {activeView === 'goals' && (
-          <GoalsView
+          <GoalsView 
             goals={goals}
-            onAddGoal={() => {
-              setEditingGoal(null);
-              resetGoalForm();
-              setShowGoalModal(true);
-            }}
+            onAddGoal={() => setShowGoalModal(true)}
             onToggleGoal={toggleGoal}
-            onEditGoal={startEditGoal}
-            onDeleteGoal={(id) => setShowDeleteConfirm({ type: 'goal', id })}
           />
         )}
         
         {activeView === 'projects' && (
-          <ProjectsView
+          <ProjectsView 
             projects={projects}
-            onAddProject={() => {
-              setEditingProject(null);
-              resetProjectForm();
-              setShowProjectModal(true);
-            }}
-            onEditProject={startEditProject}
-            onDeleteProject={(id) => setShowDeleteConfirm({ type: 'project', id })}
+            onAddProject={() => setShowProjectModal(true)}
           />
         )}
       </main>
 
       {/* Modals */}
       {showEntryModal && (
-        <Modal
-          onClose={() => {
-            setShowEntryModal(false);
-            setEditingEntry(null);
-            resetEntryForm();
-          }}
-          title={editingEntry ? 'EDIT LOG ENTRY' : 'NEW LOG ENTRY'}
-        >
-          <EntryForm
-            form={entryForm}
-            setForm={setEntryForm}
-            onSubmit={editingEntry ? updateEntry : addEntry}
-            isEditing={!!editingEntry}
-          />
+        <Modal onClose={() => setShowEntryModal(false)} title="NEW LOG ENTRY">
+          <EntryForm form={entryForm} setForm={setEntryForm} onSubmit={addEntry} />
         </Modal>
       )}
-
+      
       {showGoalModal && (
-        <Modal
-          onClose={() => {
-            setShowGoalModal(false);
-            setEditingGoal(null);
-            resetGoalForm();
-          }}
-          title={editingGoal ? 'EDIT GOAL' : 'NEW GOAL'}
-        >
-          <GoalForm
-            form={goalForm}
-            setForm={setGoalForm}
-            onSubmit={editingGoal ? updateGoal : addGoal}
-            isEditing={!!editingGoal}
-          />
+        <Modal onClose={() => setShowGoalModal(false)} title="NEW GOAL">
+          <GoalForm form={goalForm} setForm={setGoalForm} onSubmit={addGoal} />
         </Modal>
       )}
-
+      
       {showProjectModal && (
-        <Modal
-          onClose={() => {
-            setShowProjectModal(false);
-            setEditingProject(null);
-            resetProjectForm();
-          }}
-          title={editingProject ? 'EDIT PROJECT' : 'NEW PROJECT'}
-        >
-          <ProjectForm
-            form={projectForm}
-            setForm={setProjectForm}
-            onSubmit={editingProject ? updateProject : addProject}
-            isEditing={!!editingProject}
-          />
+        <Modal onClose={() => setShowProjectModal(false)} title="NEW PROJECT">
+          <ProjectForm form={projectForm} setForm={setProjectForm} onSubmit={addProject} />
         </Modal>
-      )}
-
-      {showDeleteConfirm && (
-        <DeleteConfirmModal
-          type={showDeleteConfirm.type}
-          onCancel={() => setShowDeleteConfirm(null)}
-          onConfirm={() => {
-            const { type, id } = showDeleteConfirm;
-            if (type === 'entry') return deleteEntry(id);
-            if (type === 'goal') return deleteGoal(id);
-            if (type === 'project') return deleteProject(id);
-            setShowDeleteConfirm(null);
-          }}
-        />
       )}
     </div>
   );
@@ -1547,7 +1474,7 @@ const SkillsView = ({ skills, onUpdateSkill }) => (
   </div>
 );
 
-const GoalsView = ({ goals, onAddGoal, onToggleGoal, onEditGoal, onDeleteGoal }) => (
+const GoalsView = ({ goals, onAddGoal, onToggleGoal }) => (
   <div>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
       <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#ff6b00' }}>GOALS & MILESTONES</h2>
@@ -1628,39 +1555,6 @@ const GoalsView = ({ goals, onAddGoal, onToggleGoal, onEditGoal, onDeleteGoal })
                   </div>
                 )}
               </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.15rem' }}>
-                <button
-                  onClick={() => onEditGoal && onEditGoal(goal)}
-                  style={{
-                    padding: '0.5rem',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '4px',
-                    color: '#ff6b00',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Edit size={16} />
-                </button>
-                <button
-                  onClick={() => onDeleteGoal && onDeleteGoal(goal.id)}
-                  style={{
-                    padding: '0.5rem',
-                    background: 'rgba(255,0,0,0.1)',
-                    border: '1px solid rgba(255,0,0,0.3)',
-                    borderRadius: '4px',
-                    color: '#ff6b6b',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
             </div>
           </Card>
         ))}
@@ -1669,7 +1563,7 @@ const GoalsView = ({ goals, onAddGoal, onToggleGoal, onEditGoal, onDeleteGoal })
   </div>
 );
 
-const ProjectsView = ({ projects, onAddProject, onEditProject, onDeleteProject }) => (
+const ProjectsView = ({ projects, onAddProject }) => (
   <div>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
       <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#ff6b00' }}>PROJECT PORTFOLIO</h2>
@@ -1700,42 +1594,7 @@ const ProjectsView = ({ projects, onAddProject, onEditProject, onDeleteProject }
       <div style={{ display: 'grid', gap: '1.5rem' }}>
         {projects.map(project => (
           <Card key={project.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#ff6b00' }}>{project.title}</h3>
-
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={() => onEditProject && onEditProject(project)}
-                style={{
-                  padding: '0.5rem',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '4px',
-                  color: '#ff6b00',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Edit size={16} />
-              </button>
-              <button
-                onClick={() => onDeleteProject && onDeleteProject(project.id)}
-                style={{
-                  padding: '0.5rem',
-                  background: 'rgba(255,0,0,0.1)',
-                  border: '1px solid rgba(255,0,0,0.3)',
-                  borderRadius: '4px',
-                  color: '#ff6b6b',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
+            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.5rem', color: '#ff6b00' }}>{project.title}</h3>
             
             <div style={{ display: 'grid', gap: '1rem' }}>
               <ProjectSection title="PROBLEM" content={project.problem} />
@@ -1845,7 +1704,7 @@ const Modal = ({ onClose, title, children }) => (
   </div>
 );
 
-const EntryForm = ({ form, setForm, onSubmit, isEditing }) => (
+const EntryForm = ({ form, setForm, onSubmit }) => (
   <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} style={{ display: 'grid', gap: '1rem' }}>
     <Input label="Date" type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} required />
     <Input label="Title" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} required />
@@ -1888,7 +1747,7 @@ const EntryForm = ({ form, setForm, onSubmit, isEditing }) => (
   </form>
 );
 
-const GoalForm = ({ form, setForm, onSubmit, isEditing }) => (
+const GoalForm = ({ form, setForm, onSubmit }) => (
   <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} style={{ display: 'grid', gap: '1rem' }}>
     <Input label="Goal Title" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} required />
     
@@ -1913,12 +1772,12 @@ const GoalForm = ({ form, setForm, onSubmit, isEditing }) => (
       cursor: 'pointer',
       marginTop: '1rem'
     }}>
-      {isEditing ? 'UPDATE GOAL' : 'ADD GOAL'}
+      {isEditing ? 'UPDATE ENTRY' : 'ADD GOAL'}
     </button>
   </form>
 );
 
-const ProjectForm = ({ form, setForm, onSubmit, isEditing }) => (
+const ProjectForm = ({ form, setForm, onSubmit }) => (
   <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} style={{ display: 'grid', gap: '1rem' }}>
     <Input label="Project Title" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} required />
     <TextArea label="Problem" value={form.problem} onChange={(e) => setForm({...form, problem: e.target.value})} required />
@@ -1939,7 +1798,7 @@ const ProjectForm = ({ form, setForm, onSubmit, isEditing }) => (
       cursor: 'pointer',
       marginTop: '1rem'
     }}>
-      {isEditing ? 'UPDATE PROJECT' : 'ADD PROJECT'}
+      {isEditing ? 'UPDATE ENTRY' : 'ADD PROJECT'}
     </button>
   </form>
 );
