@@ -678,25 +678,30 @@ const AuthScreen = ({ onAuthSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    
+    if (loading) return;              
     setLoading(true);
-
+    setError('');
+    
+    const cleanEmail = email.trim().toLowerCase();
     try {
-      const { data, error } = isLogin 
-        ? await supabase.signIn(email, password)
-        : await supabase.signUp(email, password);
+    const { data, error } = isLogin
+      ? await supabase.signIn(cleanEmail, password)
+      : await supabase.signUp(cleanEmail, password);
 
-      if (error) {
-        setError(error.message || 'Authentication failed');
-      } else if (data?.user) {
-        onAuthSuccess(data.user);
-      }
-    } catch (err) {
-      setError('Connection error. Please check your Supabase configuration.');
-    } finally {
-      setLoading(false);
+    if (error) {
+      setError(error.message || 'Authentication failed');
+    } 
+    // Only log in automatically if a session exists
+    else if (data?.user) {
+      onAuthSuccess(data.user);
     }
-  };
+
+  } catch (err) {
+    setError('Connection error. Please check your Supabase configuration.');
+  } finally {
+    setLoading(false);
+  }
 
   return (
     <div style={{
