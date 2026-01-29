@@ -702,7 +702,7 @@ const AuthScreen = ({ onAuthSuccess }) => {
   } finally {
     setLoading(false);
   }
-
+  };
   return (
     <div style={{
       minHeight: '100vh',
